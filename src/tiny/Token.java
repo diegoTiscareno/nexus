@@ -26,7 +26,7 @@ public class Token implements Serializable{
         LESS_EQUAL, GREATER_EQUAL, EQUALS, NOT_EQUALS, ASSIGN, SEMICOLON,
         COMMA, LEFT_PARENS, RIGHT_PARENS, LEFT_CURLY, RIGHT_CURLY, COMMENT,
         LINE_COMMENT, ITERATION, DECREMENT, IDENTIFIER, NUMBER, REAL_NUMBER,
-        VOID, BOOLEAN
+        VOID, BOOLEAN, SIGNED_NUMBER, SIGNED_REAL_NUMBER
     }
     
     public static final String[] literalesToken={

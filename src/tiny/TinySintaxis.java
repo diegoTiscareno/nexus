@@ -451,29 +451,28 @@ public class TinySintaxis {
         return nuevoHijo;
     }
     
-    //suma-op -> + | - | ++ | --
+    //suma-op -> + | - 
     private boolean sumaOp() {
-        if (match (Token.TipoToken.PLUS) || match (Token.TipoToken.MINUS)
-                || match (Token.TipoToken.ITERATION) || match(Token.TipoToken.DECREMENT)) {
+        if (match (Token.TipoToken.PLUS) || match (Token.TipoToken.MINUS)) {
             return true;
         } else {
             return false;
         }
     }
     
-    //termino -> termino mult-op factor | factor
+    //termino -> termino mult-op signed-Expresion | signed-Expresion
     //termino -> factor {mult.op factor}
     private DefaultMutableTreeNode termino(){
         DefaultMutableTreeNode nuevoHijo, fact;
         System.out.println("Termino! " + tokenAct);
-        nuevoHijo = factor();
+        nuevoHijo = signedExpresion();
         while (multOp()) {
             System.out.println("ciclo Term");
             DefaultMutableTreeNode nuevoHijoA = new DefaultMutableTreeNode(tokenAct);
             nuevoHijoA.add(nuevoHijo);
             nuevoHijo = nuevoHijoA;
             next();
-            fact = factor();
+            fact = signedExpresion();
             if (fact != null) {
                 nuevoHijoA.add(fact);
             }
@@ -489,7 +488,27 @@ public class TinySintaxis {
             return false;
         }
     }
-        
+
+    //signed-expresion-> suma-op factor | factor
+    private DefaultMutableTreeNode signedExpresion(){
+        DefaultMutableTreeNode nuevoHijo, fact;
+        if (sumaOp()){
+            nuevoHijo = new DefaultMutableTreeNode(tokenAct);
+            next();
+            fact = factor();
+            if (fact != null) {
+                nuevoHijo.add(fact);
+            } else {
+                nuevoHijo.add(new DefaultMutableTreeNode("¿Expresión?"));
+                listaErrores.add("Error en la línea " + tokenAct.getLinea() + ": expresión esperada");
+            }
+            
+        } else {
+            nuevoHijo = factor();
+        }
+        return nuevoHijo;
+    }
+    
     //factor -> (expresión) | número | identificador
     private DefaultMutableTreeNode factor() {
         DefaultMutableTreeNode nuevoHijo = null, exp;
@@ -540,7 +559,7 @@ public class TinySintaxis {
         }
         return valret;
     }
-    
+
     //avanza el análisis
     private void next() {
         index++;
@@ -558,5 +577,5 @@ public class TinySintaxis {
     public void analize() {
         programa();
     }
-    
+
 }

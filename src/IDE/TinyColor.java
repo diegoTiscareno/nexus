@@ -170,11 +170,7 @@ public class TinyColor {
                     case MAS:
                         bReader.mark(1);
                         caracter = bReader.read();
-                        if (Character.isDigit(caracter)) {
-                            estado = Estado.NUMERO;
-                            lexema.append(Character.toChars(caracter));
-                            incrementarIndice(caracter);
-                        } else if((char) caracter == '+') {
+                        if((char) caracter == '+') {
                             estado = Estado.MAS_MAS;
                             lexema.append(Character.toChars(caracter));
                             incrementarIndice(caracter);
@@ -198,11 +194,7 @@ public class TinyColor {
                     case MENOS:
                         bReader.mark(1);
                         caracter = bReader.read();
-                        if (Character.isDigit(caracter)) {
-                            estado = Estado.NUMERO;
-                            lexema.append(Character.toChars(caracter));
-                            incrementarIndice(caracter);
-                        } else if((char) caracter == '-') {
+                        if((char) caracter == '-') {
                             estado = Estado.MENOS_MENOS;
                             lexema.append(Character.toChars(caracter));
                             incrementarIndice(caracter);

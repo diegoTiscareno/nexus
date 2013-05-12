@@ -39,7 +39,7 @@ public class TinyLexico {
         this.entrada = entrada;
         indice = linea= index= 0;
         fileReader = new FileReader (entrada);
-        bReader = new BufferedReader(fileReader); 
+        bReader = new BufferedReader(fileReader);
     }
     
     public Token next(){
@@ -174,11 +174,7 @@ public class TinyLexico {
                     case MAS:
                         bReader.mark(1);
                         caracter = bReader.read();
-                        if (Character.isDigit(caracter)) {
-                            estado = Estado.NUMERO;
-                            lexema.append(Character.toChars(caracter));
-                            incrementarIndice(caracter);
-                        } else if((char) caracter == '+') {
+                        if((char) caracter == '+') {
                             estado = Estado.MAS_MAS;
                             lexema.append(Character.toChars(caracter));
                             incrementarIndice(caracter);
@@ -202,11 +198,7 @@ public class TinyLexico {
                     case MENOS:
                         bReader.mark(1);
                         caracter = bReader.read();
-                        if (Character.isDigit(caracter)) {
-                            estado = Estado.NUMERO;
-                            lexema.append(Character.toChars(caracter));
-                            incrementarIndice(caracter);
-                        } else if((char) caracter == '-') {
+                        if((char) caracter == '-') {
                             estado = Estado.MENOS_MENOS;
                             lexema.append(Character.toChars(caracter));
                             incrementarIndice(caracter);
