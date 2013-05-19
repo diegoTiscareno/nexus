@@ -91,6 +91,7 @@ public class Main {
             System.out.println(ts.getListaErrores());
             node = ts.getRaiz();
             System.out.println(node.breadthFirstEnumeration());
+            
         } catch (FileNotFoundException ex) {
             Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
         }

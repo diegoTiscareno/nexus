@@ -128,8 +128,7 @@ public class Token implements Serializable{
         if (obj instanceof Token) {
             Token tok;
             tok = (Token)obj;
-            if (tok.getIndice() == indice && tok.getLexema().equals(lexema) &&
-                    tok.getLinea() == linea && tok.getTipoToken() == tipoToken){
+            if (tok.getLexema().equals(lexema) && tok.getTipoToken() == tipoToken){
                 return true;
             } else {
                 return false;
@@ -138,7 +137,7 @@ public class Token implements Serializable{
             return false;
         }
     }
-    
+   
     public boolean isEofToken(){
         if (this.tipoToken == TipoToken.EOF){
             return true;
