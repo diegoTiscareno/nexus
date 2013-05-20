@@ -419,7 +419,75 @@ public class TinySemantico {
     }
     
     
-    public void analyze(DefaultMutableTreeNode nodo) {
+    public void seleccion(DefaultMutableTreeNode nodo) {
+        DefaultMutableTreeNode condicion;
+        NodoSemantico info;
+        Token token;
+        condicion = (DefaultMutableTreeNode) nodo.getChildAt(0);
+        expresion(condicion);
+        info = (NodoSemantico) condicion.getUserObject();
+        token = info.getToken();
+        if (info.getTipo() != NodoSemantico.type.BOOLEAN) {
+            listaErrores.add("Error en la línea " + token.getLinea() +
+                ": Tipos incompatibles, \"boolean\" requerido " 
+                + "," + info.getTipo() + " encontrado");
+        }
+    }
+    
+    public void iteracion(DefaultMutableTreeNode nodo) {
+        DefaultMutableTreeNode condicion;
+        NodoSemantico info;
+        Token token;
+        condicion = (DefaultMutableTreeNode) nodo.getChildAt(0);
+        expresion(condicion);
+        info = (NodoSemantico) condicion.getUserObject();
+        token = info.getToken();
+        if (info.getTipo() != NodoSemantico.type.BOOLEAN) {
+            listaErrores.add("Error en la línea " + token.getLinea() +
+                ": Tipos incompatibles, \"boolean\" requerido " 
+                + "," + info.getTipo() + " encontrado");
+        }
+    }
+    
+    public void repeticion(DefaultMutableTreeNode nodo) {
+        DefaultMutableTreeNode condicion;
+        NodoSemantico info;
+        Token token;
+        condicion = (DefaultMutableTreeNode) nodo.getChildAt(1);
+        expresion(condicion);
+        info = (NodoSemantico) condicion.getUserObject();
+        token = info.getToken();
+        if (info.getTipo() != NodoSemantico.type.BOOLEAN) {
+            listaErrores.add("Error en la línea " + token.getLinea() +
+                ": Tipos incompatibles, \"boolean\" requerido " 
+                + "," + info.getTipo() + " encontrado");
+        }
+    }
+    
+    public void leer(DefaultMutableTreeNode nodo) {
+        DefaultMutableTreeNode identificador;
+        NodoSemantico info;
+        Token token;
+        identificador = (DefaultMutableTreeNode) nodo.getChildAt(0);
+        info = (NodoSemantico) identificador.getUserObject();
+        token = info.getToken();
+        if (info.getTipo() == NodoSemantico.type.INT ||
+                info.getTipo() == NodoSemantico.type.REAL){
+            if (tabla.buscar(token) >= 0) {
+                info.setValor("undefined");
+            } else {
+                listaErrores.add("Error en la línea " + token.getLinea() +
+                    ": Identificador \"" + token.getLexema() + "\" no declarado.");
+            }
+        } else {
+            listaErrores.add("Error en la línea " + token.getLinea() +
+                ": No se puede leer el tipo, \"" + info.getTipo() + "\". ");
+        }
+    }
+    
+    
+    public void analyze() {
+        DefaultMutableTreeNode nodo = arbolSemantico;
         DefaultMutableTreeNode hijo;
         NodoSemantico info;
         Token token;
@@ -437,8 +505,28 @@ public class TinySemantico {
                 case ASSIGN:
                     asignacion(hijo);
                     break;
+                case IF:
+                    seleccion(hijo);
+                    break;
+                case WHILE:
+                    iteracion(hijo);
+                    break;
+                case DO:
+                    repeticion(hijo);
+                    break;
+                case CIN:
+                    leer(hijo);
+                    break;
             }
         }
+    }
+    
+    public List<String> getListaErrores() {
+        return this.listaErrores;
+    }   
+    
+    public DefaultMutableTreeNode getArbolSemantico() {
+        return arbolSemantico;
     }
     
     public static DefaultMutableTreeNode convertirArbol(DefaultMutableTreeNode nodo) {

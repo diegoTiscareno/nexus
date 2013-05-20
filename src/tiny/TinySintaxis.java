@@ -456,7 +456,7 @@ public class TinySintaxis {
     }
     
     //termino -> termino mult-op signed-Expresion | signed-Expresion
-    //termino -> factor {mult.op factor}
+    //termino -> signed-Expreson {mult.op signed-Expresion}
     private DefaultMutableTreeNode termino(){
         DefaultMutableTreeNode nuevoHijo, fact;
         System.out.println("Termino! " + tokenAct);

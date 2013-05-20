@@ -90,7 +90,7 @@ public class TinyLexico {
                             lexema.append(Character.toChars(caracter));
                         } else if ((char) caracter == '/'){
                             estado = Estado.DIAGONAL;
-                            bReader.mark(1024);
+                            bReader.mark(1);
                             lexema.append(Character.toChars(caracter));
                         } else if ((char) caracter == '!'){
                             estado = Estado.ADMIRACION;
@@ -370,7 +370,6 @@ public class TinyLexico {
                         break;
                     case DIAGONAL:
                         caracter = bReader.read();
-                        bReader.mark(1000);
                         if ((char) caracter == '/') {
                             estado = Estado.COMENTARIO_LINEA;
                             lexema.append(Character.toChars(caracter));

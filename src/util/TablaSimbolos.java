@@ -136,8 +136,12 @@ public class TablaSimbolos {
         Registro registro = new Registro();
         registro.setToken(token);
         List<Registro> lista = (List<Registro>) bucketList[hash];
-        if (lista.contains(registro)) {
-            return lista.get(lista.indexOf(token)).getLocalidad();
+        if (lista != null) {
+            if (lista.contains(registro)) {
+                return lista.get(lista.indexOf(registro)).getLocalidad();
+            } else {
+                return -1;
+            }
         } else {
             return -1;
         }
@@ -148,8 +152,12 @@ public class TablaSimbolos {
         Registro registro = new Registro();
         registro.setToken(token);
         List<Registro> lista = (List<Registro>) bucketList[hash];
-        if (lista.contains(registro)) {
-            return lista.get(lista.indexOf(token)).getValor();
+        if (lista != null) {
+            if (lista.contains(registro)) {
+                return lista.get(lista.indexOf(registro)).getValor();
+            } else {
+                return null;
+            }
         } else {
             return null;
         }
@@ -160,7 +168,11 @@ public class TablaSimbolos {
         List<Registro> lista = (List<Registro>) bucketList[hash];
         Registro registro = new Registro();
         registro.setToken(token);
-        registro = (Registro) lista.get(lista.indexOf(registro));
+        if (lista != null) {
+            registro = (Registro) lista.get(lista.indexOf(registro));
+        } else {
+            return null;
+        }
         return registro.getTipo();
     }
 }

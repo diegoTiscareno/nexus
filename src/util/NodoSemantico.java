@@ -57,4 +57,9 @@ public class NodoSemantico {
     public void setToken(Token token) {
         this.token = token;
     }
+    
+    @Override
+    public String toString() {
+        return "Token: " + token.getLexema() + "|" + "Valor: " + valor + "| Tipo: " + tipo; 
+    }
 }

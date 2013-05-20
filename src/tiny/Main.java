@@ -76,11 +76,12 @@ public class Main {
 //        }
         TinyLexico tl;
         TinySintaxis ts;
+        TinySemantico tsem;
         List listalex;
         Token tok;
         DefaultMutableTreeNode node;
         try {
-            tl = new TinyLexico(new File("/home/diego/example"));
+            tl = new TinyLexico(new File("/home/diego/operations.tpp"));
             listalex = new ArrayList();
             do {
                 tok = tl.next();
@@ -91,7 +92,10 @@ public class Main {
             System.out.println(ts.getListaErrores());
             node = ts.getRaiz();
             System.out.println(node.breadthFirstEnumeration());
-            
+            tsem = new TinySemantico(node);
+            tsem.analyze();
+            System.out.println(tsem.getArbolSemantico().breadthFirstEnumeration());
+            tsem.getListaErrores();
         } catch (FileNotFoundException ex) {
             Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
         }

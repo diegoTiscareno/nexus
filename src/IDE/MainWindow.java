@@ -50,6 +50,7 @@ import javax.swing.undo.UndoManager;
 import javax.swing.undo.UndoableEdit;
 import tiny.Main;
 import tiny.TinyLexico;
+import tiny.TinySemantico;
 import tiny.TinySintaxis;
 import tiny.Token;
 
@@ -165,8 +166,8 @@ public class MainWindow extends javax.swing.JFrame implements CaretListener,
         jPanel3 = new javax.swing.JPanel();
         jScrollPane3 = new javax.swing.JScrollPane();
         arbolSintactico = new javax.swing.JTree();
-        jPanel1 = new javax.swing.JPanel();
-        jPanel4 = new javax.swing.JPanel();
+        jScrollPane5 = new javax.swing.JScrollPane();
+        arbolSemantico = new javax.swing.JTree();
         jMenuBar1 = new javax.swing.JMenuBar();
         jMenu1 = new javax.swing.JMenu();
         menuItemNuevo = new javax.swing.JMenuItem();
@@ -340,33 +341,11 @@ public class MainWindow extends javax.swing.JFrame implements CaretListener,
             .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 172, Short.MAX_VALUE)
         );
 
-        jTabbedPane1.addTab("Semantico", jPanel3);
+        jTabbedPane1.addTab("Sintáctico", jPanel3);
 
-        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
-        jPanel1.setLayout(jPanel1Layout);
-        jPanel1Layout.setHorizontalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 271, Short.MAX_VALUE)
-        );
-        jPanel1Layout.setVerticalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 172, Short.MAX_VALUE)
-        );
+        jScrollPane5.setViewportView(arbolSemantico);
 
-        jTabbedPane1.addTab("Sintáctico", jPanel1);
-
-        javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
-        jPanel4.setLayout(jPanel4Layout);
-        jPanel4Layout.setHorizontalGroup(
-            jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 271, Short.MAX_VALUE)
-        );
-        jPanel4Layout.setVerticalGroup(
-            jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 172, Short.MAX_VALUE)
-        );
-
-        jTabbedPane1.addTab("Código Intermedio", jPanel4);
+        jTabbedPane1.addTab("Semántico", jScrollPane5);
 
         jSplitPane1.setRightComponent(jTabbedPane1);
 
@@ -644,6 +623,7 @@ public class MainWindow extends javax.swing.JFrame implements CaretListener,
     private void toolBoxCompilarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_toolBoxCompilarActionPerformed
         TinyLexico tl;
         TinySintaxis ts;
+        TinySemantico tsem;
         List listalex, listalexError;
         Token tok;
         DefaultMutableTreeNode node;
@@ -651,6 +631,7 @@ public class MainWindow extends javax.swing.JFrame implements CaretListener,
             textErrores.setText("");
             textErrores.setText("");
             textErrores.setText("");
+            textLexico.setText("");
             this.menuItemGuardarActionPerformed(evt);
             tl = new TinyLexico(currentFile);
             listalex = new ArrayList();
@@ -687,6 +668,17 @@ public class MainWindow extends javax.swing.JFrame implements CaretListener,
                     for (int i = 0; i < ts.getListaErrores().size(); i++) {
                         textErrores.append(ts.getListaErrores().get(i).toString() + "\n");
                     }
+                } else {
+                    tsem = new TinySemantico(ts.getRaiz());
+                    tsem.analyze();
+                    arbolSemantico.setModel(new DefaultTreeModel(tsem.getArbolSemantico())); 
+                    System.out.println("Errores semanticos: " + tsem.getListaErrores());
+                    if (!tsem.getListaErrores().isEmpty()) {
+                        textErrores.append("+++Errores Semanticos: \n\n");
+                        for (int i = 0; i < ts.getListaErrores().size(); i++) {
+                            textErrores.append(tsem.getListaErrores().get(i).toString() + "\n");
+                        }
+                    }
                 }
             }
             
@@ -721,19 +713,19 @@ public class MainWindow extends javax.swing.JFrame implements CaretListener,
         });
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JTree arbolSemantico;
     private javax.swing.JTree arbolSintactico;
     private javax.swing.JMenu jMenu1;
     private javax.swing.JMenu jMenu2;
     private javax.swing.JMenuBar jMenuBar1;
-    private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
-    private javax.swing.JPanel jPanel4;
     private javax.swing.JPanel jPanel7;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JScrollPane jScrollPane4;
+    private javax.swing.JScrollPane jScrollPane5;
     private javax.swing.JToolBar.Separator jSeparator1;
     private javax.swing.JSplitPane jSplitPane1;
     private javax.swing.JTabbedPane jTabbedPane1;
