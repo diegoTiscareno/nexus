@@ -1,8 +1,3 @@
-/*
- * 
- * Analizador sintáctico descendente recursivo para el lenguaje de Tiny++
- * 
- */
 package tiny;
 
 import java.util.ArrayList;
