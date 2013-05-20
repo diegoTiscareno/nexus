@@ -15,75 +15,7 @@ import tiny.Token;
 public class TablaSimbolos {
     
     private int tam;
-    
-    private class Registro { 
-        //<editor-fold defaultstate="collapsed" desc="Registro para la bucketList">
-        private int localidad;
-        private String valor;
-        private Token token;
-        private NodoSemantico.type tipo;
-        private List<Integer> listaLineasDeCodigo;
-        
-        
-        
-        public int getLocalidad() {
-            return localidad;
-        }
-        
-        public void setLocalidad(int localidad) {
-            this.localidad = localidad;
-        }
-        
-        public Token getToken() {
-            return token;
-        }
-        
-        public void setToken(Token token) {
-            this.token = token;
-        }
-        
-        public List<Integer> getListaLineasDeCodigo() {
-            return listaLineasDeCodigo;
-        }
-        
-        public void setListaLineasDeCodigo(List<Integer> list) {
-            this.listaLineasDeCodigo = list;
-        }
-        
-        public void setValor(String valor) {
-            this.valor = valor;
-        }
-        
-        public String getValor() {
-            return this.valor;
-        }
-        @Override
-        public boolean equals(Object obj) {
-            if (obj instanceof Registro) {
-                Registro reg = (Registro) obj;
-                return token.equals(reg.getToken());
-            } else {
-                return false;
-            }
-                
-        }
-        //</editor-fold>
-
-        /**
-         * @return the tipo
-         */
-        public NodoSemantico.type getTipo() {
-            return tipo;
-        }
-
-        /**
-         * @param tipo the tipo to set
-         */
-        public void setTipo(NodoSemantico.type tipo) {
-            this.tipo = tipo;
-        }
-    }
-        
+           
     private Object []bucketList;
     
     public TablaSimbolos(int tam) {
@@ -103,9 +35,9 @@ public class TablaSimbolos {
     
     public void insertar(Token token, int localidad, String valor, NodoSemantico.type tipo) {
         int hash = hash(token);
-        List<Registro> lista = (List<Registro>) bucketList[hash];
+        List<NodoSemantico> lista = (List<NodoSemantico>) bucketList[hash];
         
-        Registro registro = new Registro();
+        NodoSemantico registro = new NodoSemantico();
         registro.setLocalidad(localidad);
         registro.setToken(token);
         registro.setValor(valor);
@@ -123,19 +55,19 @@ public class TablaSimbolos {
                 lista.add(registro);
             }
         } else {
-            bucketList[hash] = new ArrayList<Registro>();
+            bucketList[hash] = new ArrayList<NodoSemantico>();
             ArrayList<Integer> lineasset = new ArrayList<Integer>();
             lineasset.add(token.getLinea());
             registro.setListaLineasDeCodigo(lineasset);
-            ((List<Registro>)bucketList[hash]).add(registro);
+            ((List<NodoSemantico>)bucketList[hash]).add(registro);
         }
     }
     
     public int buscar(Token token) {
         int hash = hash(token);
-        Registro registro = new Registro();
+        NodoSemantico registro = new NodoSemantico();
         registro.setToken(token);
-        List<Registro> lista = (List<Registro>) bucketList[hash];
+        List<NodoSemantico> lista = (List<NodoSemantico>) bucketList[hash];
         if (lista != null) {
             if (lista.contains(registro)) {
                 return lista.get(lista.indexOf(registro)).getLocalidad();
@@ -149,9 +81,9 @@ public class TablaSimbolos {
     
     public String valor(Token token) {
         int hash = hash(token);
-        Registro registro = new Registro();
+        NodoSemantico registro = new NodoSemantico();
         registro.setToken(token);
-        List<Registro> lista = (List<Registro>) bucketList[hash];
+        List<NodoSemantico> lista = (List<NodoSemantico>) bucketList[hash];
         if (lista != null) {
             if (lista.contains(registro)) {
                 return lista.get(lista.indexOf(registro)).getValor();
@@ -165,14 +97,18 @@ public class TablaSimbolos {
     
     public NodoSemantico.type tipoToken(Token token) {
         int hash = hash(token);
-        List<Registro> lista = (List<Registro>) bucketList[hash];
-        Registro registro = new Registro();
+        List<NodoSemantico> lista = (List<NodoSemantico>) bucketList[hash];
+        NodoSemantico registro = new NodoSemantico();
         registro.setToken(token);
         if (lista != null) {
-            registro = (Registro) lista.get(lista.indexOf(registro));
+            registro = (NodoSemantico) lista.get(lista.indexOf(registro));
         } else {
             return null;
         }
         return registro.getTipo();
+    }
+    
+    public Object[] getBucketList() {
+        return bucketList;
     }
 }

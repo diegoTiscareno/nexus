@@ -36,6 +36,7 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.UndoableEditEvent;
 import javax.swing.event.UndoableEditListener;
+import javax.swing.table.DefaultTableModel;
 import javax.swing.text.AbstractDocument;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Style;
@@ -53,6 +54,8 @@ import tiny.TinyLexico;
 import tiny.TinySemantico;
 import tiny.TinySintaxis;
 import tiny.Token;
+import util.NodoSemantico;
+import util.TablaSimbolos;
 
 
 /**
@@ -156,6 +159,8 @@ public class MainWindow extends javax.swing.JFrame implements CaretListener,
         jPanel7 = new javax.swing.JPanel();
         jScrollPane2 = new javax.swing.JScrollPane();
         textErrores = new javax.swing.JTextArea();
+        jScrollPane6 = new javax.swing.JScrollPane();
+        tablaSimbolos = new javax.swing.JTable();
         jSplitPane1 = new javax.swing.JSplitPane();
         jScrollPane1 = new javax.swing.JScrollPane();
         textPane = new javax.swing.JTextPane();
@@ -299,6 +304,21 @@ public class MainWindow extends javax.swing.JFrame implements CaretListener,
         );
 
         jTabbedPane2.addTab("Errores", jPanel7);
+
+        tablaSimbolos.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null}
+            },
+            new String [] {
+                "Title 1", "Title 2", "Title 3", "Title 4"
+            }
+        ));
+        jScrollPane6.setViewportView(tablaSimbolos);
+
+        jTabbedPane2.addTab("tab2", jScrollPane6);
 
         jSplitPane1.setDividerLocation(450);
 
@@ -672,10 +692,34 @@ public class MainWindow extends javax.swing.JFrame implements CaretListener,
                     tsem = new TinySemantico(ts.getRaiz());
                     tsem.analyze();
                     arbolSemantico.setModel(new DefaultTreeModel(tsem.getArbolSemantico())); 
+                    DefaultTableModel dtm = new DefaultTableModel();
+                    dtm.addColumn("Variable");
+                    dtm.addColumn("Localidad");
+                    dtm.addColumn("Tipo");
+                    dtm.addColumn("Valor");
+                    dtm.addColumn("Lineas de código");
+                    Object[] list, array;
+                    List<NodoSemantico> listobj;
+                    list = tsem.getTablaSimbolos().getBucketList();
+                    for (int i = 0; i < list.length; i++) {
+                        listobj = (List<NodoSemantico>) list[i];
+                        if (listobj != null) {
+                            for (int j = 0; j < listobj.size(); j++) {
+                                array = new Object[5];
+                                array[0] = listobj.get(j).getToken().getLexema();
+                                array[1] = listobj.get(j).getLocalidad();
+                                array[2] = listobj.get(j).getTipo();
+                                array[3] = listobj.get(j).getValor();
+                                array[4] = listobj.get(j).getListaLineasDeCodigo();
+                                dtm.addRow(array);
+                            }
+                        }
+                    }
+                    tablaSimbolos.setModel(dtm);
                     System.out.println("Errores semanticos: " + tsem.getListaErrores());
                     if (!tsem.getListaErrores().isEmpty()) {
                         textErrores.append("+++Errores Semanticos: \n\n");
-                        for (int i = 0; i < ts.getListaErrores().size(); i++) {
+                        for (int i = 0; i < tsem.getListaErrores().size(); i++) {
                             textErrores.append(tsem.getListaErrores().get(i).toString() + "\n");
                         }
                     }
@@ -726,6 +770,7 @@ public class MainWindow extends javax.swing.JFrame implements CaretListener,
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JScrollPane jScrollPane4;
     private javax.swing.JScrollPane jScrollPane5;
+    private javax.swing.JScrollPane jScrollPane6;
     private javax.swing.JToolBar.Separator jSeparator1;
     private javax.swing.JSplitPane jSplitPane1;
     private javax.swing.JTabbedPane jTabbedPane1;
@@ -743,6 +788,7 @@ public class MainWindow extends javax.swing.JFrame implements CaretListener,
     private javax.swing.JPopupMenu popUp;
     private javax.swing.JLabel status;
     private javax.swing.JPanel statusPane;
+    private javax.swing.JTable tablaSimbolos;
     private javax.swing.JTextArea textErrores;
     private javax.swing.JTextArea textLexico;
     private javax.swing.JTextPane textPane;

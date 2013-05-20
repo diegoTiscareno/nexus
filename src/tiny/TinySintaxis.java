@@ -300,7 +300,8 @@ public class TinySintaxis {
         DefaultMutableTreeNode nuevoHijo, sentencias, exp;
         nuevoHijo = new DefaultMutableTreeNode(tokenAct);
         next();
-        sentencias = new DefaultMutableTreeNode("sentencias");
+        sentencias = new DefaultMutableTreeNode(new Token(Token.TipoToken.THEN, 
+                "then", tokenAct.getIndice(), tokenAct.getLinea(), tokenAct.getIndex()));
         
         listaSentencias(sentencias);
         nuevoHijo.add(sentencias);
@@ -504,7 +505,7 @@ public class TinySintaxis {
         return nuevoHijo;
     }
     
-    //factor -> (expresión) | número | identificador
+    //factor -> (expresión) | número | identificador | true | false
     private DefaultMutableTreeNode factor() {
         DefaultMutableTreeNode nuevoHijo = null, exp;
         System.out.println("Factor! ");
@@ -532,6 +533,14 @@ public class TinySintaxis {
                 next();
                 break;
             case REAL_NUMBER:
+                nuevoHijo = new DefaultMutableTreeNode(tokenAct);
+                next();
+                break;
+            case TRUE:
+                nuevoHijo = new DefaultMutableTreeNode(tokenAct);
+                next();
+                break;
+            case FALSE:
                 nuevoHijo = new DefaultMutableTreeNode(tokenAct);
                 next();
                 break;

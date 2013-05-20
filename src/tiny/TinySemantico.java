@@ -18,7 +18,7 @@ public class TinySemantico {
     private DefaultMutableTreeNode nodoActual;
     private int localidad = 0;
     private TablaSimbolos tabla;
-    private List<String> listaErrores;
+    private List listaErrores;
     
     
     public TinySemantico(DefaultMutableTreeNode root) {
@@ -70,14 +70,18 @@ public class TinySemantico {
         identificador = (DefaultMutableTreeNode) nodo.getChildAt(0);
         expresion = (DefaultMutableTreeNode) nodo.getChildAt(1);
         expresion(expresion);
+        expresion(identificador);
+        Token tokenIdentificador = ((NodoSemantico) identificador.getUserObject()).getToken();
         infoid = (NodoSemantico) identificador.getUserObject();
         infoexp = (NodoSemantico) expresion.getUserObject();
-        if (infoid.getTipo() != infoexp.getTipo()) {
+        if ((infoid.getTipo() == NodoSemantico.type.REAL && 
+                infoexp.getTipo() == NodoSemantico.type.INT) || infoid.getTipo() == infoexp.getTipo()) {
+            tabla.insertar(tokenIdentificador, localidad++, infoexp.getValor(), infoid.getTipo());
+            infoid.setValor(infoexp.getValor());
+        } else {
             listaErrores.add("Error en la línea " + token.getLinea() +
                 ": Tipos incompatibles, \"" + infoid.getToken().getLexema() + "\" es de tipo " 
                 + infoid.getTipo() + "," + infoexp.getTipo() + " encontrado");
-        } else {
-            tabla.insertar(token, localidad++, infoexp.getValor(), infoid.getTipo());
         }
 
     }
@@ -87,6 +91,7 @@ public class TinySemantico {
         DefaultMutableTreeNode derecho, izquierdo;
         infor = ((NodoSemantico)nodo.getUserObject());
         Token token =infor.getToken();
+        String result;
         switch(token.getTipoToken()) {
             case IDENTIFIER:
                 if (tabla.buscar(token) < 0) {
@@ -94,6 +99,7 @@ public class TinySemantico {
                         ": Identificador \"" + token.getLexema() + "\" no declarado.");
                 } else {
                     infor.setValor(tabla.valor(token));
+                    infor.setTipo(tabla.tipoToken(token));
                 }
                 break;
             case NUMBER:
@@ -104,6 +110,11 @@ public class TinySemantico {
                 infor.setValor(token.getLexema());
                 infor.setTipo(NodoSemantico.type.REAL);
                 break;
+            case TRUE:
+            case FALSE:
+                infor.setValor(token.getLexema());
+                infor.setTipo(NodoSemantico.type.BOOLEAN);
+                break;
             case PLUS:
                 derecho = (DefaultMutableTreeNode) nodo.getChildAt(1);
                 izquierdo = (DefaultMutableTreeNode) nodo.getChildAt(0);
@@ -113,20 +124,30 @@ public class TinySemantico {
                 infod = (NodoSemantico) derecho.getUserObject();
                 if ((infoi.getTipo() == NodoSemantico.type.INT &&
                         infod.getTipo() == NodoSemantico.type.INT) ) {
-                    String result;
                     int izq, der;
-                    izq = Integer.parseInt(infoi.getValor());
-                    der = Integer.parseInt(infod.getValor());
-                    result = Integer.toString(izq + der);
-                    infor.setValor(result);
-                } else if ((infoi.getTipo() == NodoSemantico.type.REAL &&
-                        infod.getTipo() == NodoSemantico.type.REAL)){
-                    String result;
+                    if (infoi.getValor().equals("") || infod.getValor().equals("")) {
+                        infor.setValor("");
+                    } else {
+                        izq = Integer.parseInt(infoi.getValor());
+                        der = Integer.parseInt(infod.getValor());
+                        result = Integer.toString(izq + der);
+                        infor.setValor(result); 
+                    }
+                    infor.setTipo(NodoSemantico.type.INT);
+                } else if ((infoi.getTipo() == NodoSemantico.type.REAL ||
+                        infoi.getTipo() == NodoSemantico.type.INT) &&
+                        (infod.getTipo() == NodoSemantico.type.REAL ||
+                        infod.getTipo() == NodoSemantico.type.INT)){
                     float izq, der;
-                    izq = Float.parseFloat(infoi.getValor());
-                    der = Float.parseFloat(infod.getValor());
-                    result = Float.toString(izq + der);
-                    infor.setValor(result);
+                    if (infod.getValor().equals("") || infoi.getValor().equals("")) {
+                        infor.setValor("");
+                    } else {
+                        izq = Float.parseFloat(infoi.getValor());
+                        der = Float.parseFloat(infod.getValor());
+                        result = Float.toString(izq + der);
+                        infor.setValor(result);
+                    }
+                    infor.setTipo(NodoSemantico.type.REAL);
                 } else {
                         listaErrores.add("Error en la línea " + token.getLinea() + ": "
                                 + infoi.getTipo() + " y " + infod.getTipo() + " son tipos incompatibles");
@@ -140,35 +161,58 @@ public class TinySemantico {
                     expresion(izquierdo);
                     infoi = (NodoSemantico) izquierdo.getUserObject();
                     infod = (NodoSemantico) derecho.getUserObject();
-                    if ((infoi.getTipo() == NodoSemantico.type.INT
-                            && infod.getTipo() == NodoSemantico.type.INT)) {
-                        String result;
+                    if ((infoi.getTipo() == NodoSemantico.type.INT &&
+                        infod.getTipo() == NodoSemantico.type.INT) ) {
                         int izq, der;
-                        izq = Integer.parseInt(infoi.getValor());
-                        der = Integer.parseInt(infod.getValor());
-                        result = Integer.toString(izq - der);
-                        infor.setValor(result);
-                    } else if ((infoi.getTipo() == NodoSemantico.type.REAL
-                            && infod.getTipo() == NodoSemantico.type.REAL)) {
-                        String result;
+                        if (infod.getValor().equals("") || infoi.getValor().equals("")) {
+                            infor.setValor("");
+                        } else {
+                            izq = Integer.parseInt(infoi.getValor());
+                            der = Integer.parseInt(infod.getValor());
+                            result = Integer.toString(izq - der);
+                            infor.setValor(result);
+                        }
+                        infor.setTipo(NodoSemantico.type.INT);
+                    } else if ((infoi.getTipo() == NodoSemantico.type.REAL ||
+                        infoi.getTipo() == NodoSemantico.type.INT) &&
+                        (infod.getTipo() == NodoSemantico.type.REAL ||
+                        infod.getTipo() == NodoSemantico.type.INT)){
                         float izq, der;
+                        if (infod.getValor().equals("") || infoi.getValor().equals("")) {
+                            infor.setValor("");
+                        } else {
                         izq = Float.parseFloat(infoi.getValor());
                         der = Float.parseFloat(infod.getValor());
                         result = Float.toString(izq - der);
-                        infor.setValor(result);
+                            infor.setValor(result);
+                        }
+                        infor.setTipo(NodoSemantico.type.REAL);
                     } else {
-                        listaErrores.add("Error en la línea " + token.getLinea() + ": "
-                                + infoi.getTipo() + " y " + infod.getTipo() + " son tipos incompatibles");
+                            listaErrores.add("Error en la línea " + token.getLinea() + ": "
+                                    + infoi.getTipo() + " y " + infod.getTipo() + " son tipos incompatibles");
                     }
                 } else {
                     izquierdo = (DefaultMutableTreeNode) nodo.getChildAt(0);
+                    expresion(izquierdo);
                     infoi = (NodoSemantico) izquierdo.getUserObject();
                     if (infoi.getTipo() == NodoSemantico.type.REAL) {
-                        float izq = Float.parseFloat(infoi.getValor());
-                        infor.setValor(Float.toString(-izq));
+                        float izq;
+                        if (infoi.getValor().equals("")) {
+                            infor.setValor("");
+                        } else {
+                            izq= Float.parseFloat(infoi.getValor());
+                            infor.setValor(Float.toString(-izq));
+                        }
+                        infor.setTipo(NodoSemantico.type.REAL);
                     } else if (infoi.getTipo() == NodoSemantico.type.INT) {
-                        int izq = Integer.parseInt(infoi.getValor());
-                        infor.setValor(Integer.toString(-izq));
+                        int izq; 
+                        if (infoi.getValor().equals("")) {
+                            infor.setValor("");
+                        } else {
+                            izq = Integer.parseInt(infoi.getValor());
+                            infor.setValor(Integer.toString(-izq));
+                        }
+                        infor.setTipo(NodoSemantico.type.INT);
                     } else {
                         listaErrores.add("Error en la línea " + token.getLinea() 
                                 + ": operador unario \"-\" no aplicable al tipo" + infoi.getTipo());
@@ -184,20 +228,30 @@ public class TinySemantico {
                 infod = (NodoSemantico) derecho.getUserObject();
                 if ((infoi.getTipo() == NodoSemantico.type.INT &&
                         infod.getTipo() == NodoSemantico.type.INT) ) {
-                    String result;
                     int izq, der;
-                    izq = Integer.parseInt(infoi.getValor());
-                    der = Integer.parseInt(infod.getValor());
-                    result = Integer.toString(izq * der);
-                    infor.setValor(result);
-                } else if ((infoi.getTipo() == NodoSemantico.type.REAL &&
-                        infod.getTipo() == NodoSemantico.type.REAL)){
-                    String result;
+                    if (infod.getValor().equals("") || infoi.getValor().equals("")) {
+                        infor.setValor("");
+                    } else {
+                        izq = Integer.parseInt(infoi.getValor());
+                        der = Integer.parseInt(infod.getValor());
+                        result = Integer.toString(izq * der);
+                        infor.setValor(result);
+                    }
+                    infor.setTipo(NodoSemantico.type.INT);
+                } else if ((infoi.getTipo() == NodoSemantico.type.REAL ||
+                        infoi.getTipo() == NodoSemantico.type.INT) &&
+                        (infod.getTipo() == NodoSemantico.type.REAL ||
+                        infod.getTipo() == NodoSemantico.type.INT)){
                     float izq, der;
-                    izq = Float.parseFloat(infoi.getValor());
-                    der = Float.parseFloat(infod.getValor());
-                    result = Float.toString(izq * der);
-                    infor.setValor(result);
+                    if (infod.getValor().equals("") || infoi.getValor().equals("")) {
+                        infor.setValor("");
+                    } else {
+                        izq = Float.parseFloat(infoi.getValor());
+                        der = Float.parseFloat(infod.getValor());
+                        result = Float.toString(izq * der);
+                        infor.setValor(result);
+                    }
+                    infor.setTipo(NodoSemantico.type.REAL);
                 } else {
                         listaErrores.add("Error en la línea " + token.getLinea() + ": "
                                 + infoi.getTipo() + " y " + infod.getTipo() + " son tipos incompatibles");
@@ -212,20 +266,30 @@ public class TinySemantico {
                 infod = (NodoSemantico) derecho.getUserObject();
                 if ((infoi.getTipo() == NodoSemantico.type.INT &&
                         infod.getTipo() == NodoSemantico.type.INT) ) {
-                    String result;
                     int izq, der;
-                    izq = Integer.parseInt(infoi.getValor());
-                    der = Integer.parseInt(infod.getValor());
-                    result = Integer.toString(izq / der);
-                    infor.setValor(result);
-                } else if ((infoi.getTipo() == NodoSemantico.type.REAL &&
-                        infod.getTipo() == NodoSemantico.type.REAL)){
-                    String result;
+                    if (infod.getValor().equals("") || infoi.getValor().equals("")) {
+                        infor.setValor("");
+                    } else {
+                        izq = Integer.parseInt(infoi.getValor());
+                        der = Integer.parseInt(infod.getValor());
+                        result = Integer.toString(izq * der);
+                        infor.setValor(result);
+                    }
+                    infor.setTipo(NodoSemantico.type.INT);
+                } else if ((infoi.getTipo() == NodoSemantico.type.REAL ||
+                        infoi.getTipo() == NodoSemantico.type.INT) &&
+                        (infod.getTipo() == NodoSemantico.type.REAL ||
+                        infod.getTipo() == NodoSemantico.type.INT)){
                     float izq, der;
-                    izq = Float.parseFloat(infoi.getValor());
-                    der = Float.parseFloat(infod.getValor());
-                    result = Float.toString(izq / der);
-                    infor.setValor(result);
+                    if (infod.getValor().equals("") || infoi.getValor().equals("")) {
+                        infor.setValor("");
+                    } else {
+                        izq = Float.parseFloat(infoi.getValor());
+                        der = Float.parseFloat(infod.getValor());
+                        result = Float.toString(izq * der);
+                        infor.setValor(result);
+                    }
+                    infor.setTipo(NodoSemantico.type.REAL);
                 } else {
                         listaErrores.add("Error en la línea " + token.getLinea() + ": "
                                 + infoi.getTipo() + " y " + infod.getTipo() + " son tipos incompatibles");
@@ -238,22 +302,20 @@ public class TinySemantico {
                 expresion(izquierdo);
                 infoi = (NodoSemantico) izquierdo.getUserObject();
                 infod = (NodoSemantico) derecho.getUserObject();
-                if ((infoi.getTipo() == NodoSemantico.type.INT &&
-                        infod.getTipo() == NodoSemantico.type.INT) ) {
-                    String result;
-                    int izq, der;
-                    izq = Integer.parseInt(infoi.getValor());
-                    der = Integer.parseInt(infod.getValor());
-                    result = Boolean.toString(izq >= der);
-                    infor.setValor(result);
-                } else if ((infoi.getTipo() == NodoSemantico.type.REAL &&
-                        infod.getTipo() == NodoSemantico.type.REAL)){
-                    String result;
+                if ((infoi.getTipo() == NodoSemantico.type.REAL ||
+                        infoi.getTipo() == NodoSemantico.type.INT) &&
+                        (infod.getTipo() == NodoSemantico.type.REAL ||
+                        infod.getTipo() == NodoSemantico.type.INT)){
                     float izq, der;
-                    izq = Float.parseFloat(infoi.getValor());
-                    der = Float.parseFloat(infod.getValor());
-                    result = Boolean.toString(izq >= der);
-                    infor.setValor(result);
+                    if (infod.getValor().equals("") || infoi.getValor().equals("")) {
+                        infor.setValor("");
+                    } else {
+                        izq = Float.parseFloat(infoi.getValor());
+                        der = Float.parseFloat(infod.getValor());
+                        result = Boolean.toString(izq >= der);
+                        infor.setValor(result);
+                    }
+                    infor.setTipo(NodoSemantico.type.BOOLEAN);
                 } else {
                         listaErrores.add("Error en la línea " + token.getLinea() + ": "
                                 + infoi.getTipo() + " y " + infod.getTipo() + " son tipos incompatibles");
@@ -266,22 +328,20 @@ public class TinySemantico {
                 expresion(izquierdo);
                 infoi = (NodoSemantico) izquierdo.getUserObject();
                 infod = (NodoSemantico) derecho.getUserObject();
-                if ((infoi.getTipo() == NodoSemantico.type.INT &&
-                        infod.getTipo() == NodoSemantico.type.INT) ) {
-                    String result;
-                    int izq, der;
-                    izq = Integer.parseInt(infoi.getValor());
-                    der = Integer.parseInt(infod.getValor());
-                    result = Boolean.toString(izq > der);
-                    infor.setValor(result);
-                } else if ((infoi.getTipo() == NodoSemantico.type.REAL &&
-                        infod.getTipo() == NodoSemantico.type.REAL)){
-                    String result;
+                if ((infoi.getTipo() == NodoSemantico.type.REAL ||
+                        infoi.getTipo() == NodoSemantico.type.INT) &&
+                        (infod.getTipo() == NodoSemantico.type.REAL ||
+                        infod.getTipo() == NodoSemantico.type.INT)){
                     float izq, der;
-                    izq = Float.parseFloat(infoi.getValor());
-                    der = Float.parseFloat(infod.getValor());
-                    result = Boolean.toString(izq > der);
-                    infor.setValor(result);
+                    if (infod.getValor().equals("") || infoi.getValor().equals("")) {
+                        infor.setValor("");
+                    } else {
+                        izq = Float.parseFloat(infoi.getValor());
+                        der = Float.parseFloat(infod.getValor());
+                        result = Boolean.toString(izq > der);
+                        infor.setValor(result);
+                    }
+                    infor.setTipo(NodoSemantico.type.BOOLEAN);
                 } else {
                         listaErrores.add("Error en la línea " + token.getLinea() + ": "
                                 + infoi.getTipo() + " y " + infod.getTipo() + " son tipos incompatibles");
@@ -294,22 +354,20 @@ public class TinySemantico {
                 expresion(izquierdo);
                 infoi = (NodoSemantico) izquierdo.getUserObject();
                 infod = (NodoSemantico) derecho.getUserObject();
-                if ((infoi.getTipo() == NodoSemantico.type.INT &&
-                        infod.getTipo() == NodoSemantico.type.INT) ) {
-                    String result;
-                    int izq, der;
-                    izq = Integer.parseInt(infoi.getValor());
-                    der = Integer.parseInt(infod.getValor());
-                    result = Boolean.toString(izq <= der);
-                    infor.setValor(result);
-                } else if ((infoi.getTipo() == NodoSemantico.type.REAL &&
-                        infod.getTipo() == NodoSemantico.type.REAL)){
-                    String result;
+                if ((infoi.getTipo() == NodoSemantico.type.REAL ||
+                        infoi.getTipo() == NodoSemantico.type.INT) &&
+                        (infod.getTipo() == NodoSemantico.type.REAL ||
+                        infod.getTipo() == NodoSemantico.type.INT)){
                     float izq, der;
-                    izq = Float.parseFloat(infoi.getValor());
-                    der = Float.parseFloat(infod.getValor());
-                    result = Boolean.toString(izq <= der);
-                    infor.setValor(result);
+                    if (infod.getValor().equals("") || infoi.getValor().equals("")) {
+                        infor.setValor("");
+                    } else {
+                        izq = Float.parseFloat(infoi.getValor());
+                        der = Float.parseFloat(infod.getValor());
+                        result = Boolean.toString(izq <= der);
+                        infor.setValor(result);
+                    }
+                    infor.setTipo(NodoSemantico.type.BOOLEAN);
                 } else {
                         listaErrores.add("Error en la línea " + token.getLinea() + ": "
                                 + infoi.getTipo() + " y " + infod.getTipo() + " son tipos incompatibles");
@@ -322,22 +380,20 @@ public class TinySemantico {
                 expresion(izquierdo);
                 infoi = (NodoSemantico) izquierdo.getUserObject();
                 infod = (NodoSemantico) derecho.getUserObject();
-                if ((infoi.getTipo() == NodoSemantico.type.INT &&
-                        infod.getTipo() == NodoSemantico.type.INT) ) {
-                    String result;
-                    int izq, der;
-                    izq = Integer.parseInt(infoi.getValor());
-                    der = Integer.parseInt(infod.getValor());
-                    result = Boolean.toString(izq < der);
-                    infor.setValor(result);
-                } else if ((infoi.getTipo() == NodoSemantico.type.REAL &&
-                        infod.getTipo() == NodoSemantico.type.REAL)){
-                    String result;
+                if ((infoi.getTipo() == NodoSemantico.type.REAL ||
+                        infoi.getTipo() == NodoSemantico.type.INT) &&
+                        (infod.getTipo() == NodoSemantico.type.REAL ||
+                        infod.getTipo() == NodoSemantico.type.INT)){
                     float izq, der;
-                    izq = Float.parseFloat(infoi.getValor());
-                    der = Float.parseFloat(infod.getValor());
-                    result = Boolean.toString(izq < der);
-                    infor.setValor(result);
+                    if (infod.getValor().equals("") || infoi.getValor().equals("")) {
+                        infor.setValor("");
+                    } else {
+                        izq = Float.parseFloat(infoi.getValor());
+                        der = Float.parseFloat(infod.getValor());
+                        result = Boolean.toString(izq < der);
+                        infor.setValor(result);
+                    }
+                    infor.setTipo(NodoSemantico.type.BOOLEAN);
                 } else {
                         listaErrores.add("Error en la línea " + token.getLinea() + ": "
                                 + infoi.getTipo() + " y " + infod.getTipo() + " son tipos incompatibles");
@@ -350,30 +406,32 @@ public class TinySemantico {
                 expresion(izquierdo);
                 infoi = (NodoSemantico) izquierdo.getUserObject();
                 infod = (NodoSemantico) derecho.getUserObject();
-                if ((infoi.getTipo() == NodoSemantico.type.INT &&
-                        infod.getTipo() == NodoSemantico.type.INT) ) {
-                    String result;
-                    int izq, der;
-                    izq = Integer.parseInt(infoi.getValor());
-                    der = Integer.parseInt(infod.getValor());
-                    result = Boolean.toString(izq == der);
-                    infor.setValor(result);
-                } else if ((infoi.getTipo() == NodoSemantico.type.REAL &&
-                        infod.getTipo() == NodoSemantico.type.REAL)){
-                    String result;
+                if ((infoi.getTipo() == NodoSemantico.type.REAL ||
+                        infoi.getTipo() == NodoSemantico.type.INT) &&
+                        (infod.getTipo() == NodoSemantico.type.REAL ||
+                        infod.getTipo() == NodoSemantico.type.INT)){
                     float izq, der;
-                    izq = Float.parseFloat(infoi.getValor());
-                    der = Float.parseFloat(infod.getValor());
-                    result = Boolean.toString(izq == der);
-                    infor.setValor(result);
+                    if (infod.getValor().equals("") || infoi.getValor().equals("")) {
+                        infor.setValor("");
+                    } else {
+                        izq = Float.parseFloat(infoi.getValor());
+                        der = Float.parseFloat(infod.getValor());
+                        result = Boolean.toString(izq == der);
+                        infor.setValor(result);
+                    }
+                    infor.setTipo(NodoSemantico.type.BOOLEAN);
                 } else if ((infoi.getTipo() == NodoSemantico.type.BOOLEAN &&
                         infod.getTipo() == NodoSemantico.type.BOOLEAN)) { 
-                    String result;
                     boolean izq, der;
-                    izq = Boolean.parseBoolean(infoi.getValor());
-                    der = Boolean.parseBoolean(infod.getValor());
-                    result = Boolean.toString(izq == der);
-                    infor.setValor(result);
+                    if (infod.getValor().equals("") || infoi.getValor().equals("")) {
+                        infor.setValor("");
+                    } else {
+                        izq = Boolean.parseBoolean(infoi.getValor());
+                        der = Boolean.parseBoolean(infod.getValor());
+                        result = Boolean.toString(izq == der);
+                        infor.setValor(result);
+                    }
+                    infor.setTipo(NodoSemantico.type.BOOLEAN);
                 } else {
                         listaErrores.add("Error en la línea " + token.getLinea() + ": "
                                 + infoi.getTipo() + " y " + infod.getTipo() + " son tipos incompatibles");
@@ -386,30 +444,32 @@ public class TinySemantico {
                 expresion(izquierdo);
                 infoi = (NodoSemantico) izquierdo.getUserObject();
                 infod = (NodoSemantico) derecho.getUserObject();
-                if ((infoi.getTipo() == NodoSemantico.type.INT &&
-                        infod.getTipo() == NodoSemantico.type.INT) ) {
-                    String result;
-                    int izq, der;
-                    izq = Integer.parseInt(infoi.getValor());
-                    der = Integer.parseInt(infod.getValor());
-                    result = Boolean.toString(izq != der);
-                    infor.setValor(result);
-                } else if ((infoi.getTipo() == NodoSemantico.type.REAL &&
-                        infod.getTipo() == NodoSemantico.type.REAL)){
-                    String result;
+                if ((infoi.getTipo() == NodoSemantico.type.REAL ||
+                        infoi.getTipo() == NodoSemantico.type.INT) &&
+                        (infod.getTipo() == NodoSemantico.type.REAL ||
+                        infod.getTipo() == NodoSemantico.type.INT)){
                     float izq, der;
-                    izq = Float.parseFloat(infoi.getValor());
-                    der = Float.parseFloat(infod.getValor());
-                    result = Boolean.toString(izq != der);
-                    infor.setValor(result);
+                    if (infod.getValor().equals("") || infoi.getValor().equals("")) {
+                        infor.setValor("");
+                    } else {
+                        izq = Float.parseFloat(infoi.getValor());
+                        der = Float.parseFloat(infod.getValor());
+                        result = Boolean.toString(izq != der);
+                        infor.setValor(result);
+                    }
+                    infor.setTipo(NodoSemantico.type.BOOLEAN);
                 } else if ((infoi.getTipo() == NodoSemantico.type.BOOLEAN &&
                         infod.getTipo() == NodoSemantico.type.BOOLEAN)) { 
-                    String result;
                     boolean izq, der;
-                    izq = Boolean.parseBoolean(infoi.getValor());
-                    der = Boolean.parseBoolean(infod.getValor());
-                    result = Boolean.toString(izq != der);
-                    infor.setValor(result);
+                    if (infod.getValor().equals("") || infoi.getValor().equals("")) {
+                        infor.setValor("");
+                    } else {
+                        izq = Boolean.parseBoolean(infoi.getValor());
+                        der = Boolean.parseBoolean(infod.getValor());
+                        result = Boolean.toString(izq != der);
+                        infor.setValor(result);
+                    }
+                    infor.setTipo(NodoSemantico.type.BOOLEAN);
                 } else {
                         listaErrores.add("Error en la línea " + token.getLinea() + ": "
                                 + infoi.getTipo() + " y " + infod.getTipo() + " son tipos incompatibles");
@@ -420,26 +480,38 @@ public class TinySemantico {
     
     
     public void seleccion(DefaultMutableTreeNode nodo) {
-        DefaultMutableTreeNode condicion;
+        DefaultMutableTreeNode condicion, bloquetrue, bloquefalse = null;
         NodoSemantico info;
         Token token;
         condicion = (DefaultMutableTreeNode) nodo.getChildAt(0);
+        bloquetrue = (DefaultMutableTreeNode) nodo.getChildAt(1);
+        if (nodo.getChildCount() == 3) {
+            bloquefalse = (DefaultMutableTreeNode) nodo.getChildAt(2);
+        }
         expresion(condicion);
         info = (NodoSemantico) condicion.getUserObject();
+        
         token = info.getToken();
         if (info.getTipo() != NodoSemantico.type.BOOLEAN) {
             listaErrores.add("Error en la línea " + token.getLinea() +
                 ": Tipos incompatibles, \"boolean\" requerido " 
                 + "," + info.getTipo() + " encontrado");
         }
+        
+        analyze(bloquetrue);
+        if(bloquefalse != null) {
+            analyze(bloquefalse);
+        }
     }
     
     public void iteracion(DefaultMutableTreeNode nodo) {
-        DefaultMutableTreeNode condicion;
+        DefaultMutableTreeNode condicion, bloque;
         NodoSemantico info;
         Token token;
         condicion = (DefaultMutableTreeNode) nodo.getChildAt(0);
+        bloque = (DefaultMutableTreeNode) nodo.getChildAt(1);
         expresion(condicion);
+        analyze(bloque);
         info = (NodoSemantico) condicion.getUserObject();
         token = info.getToken();
         if (info.getTipo() != NodoSemantico.type.BOOLEAN) {
@@ -450,11 +522,13 @@ public class TinySemantico {
     }
     
     public void repeticion(DefaultMutableTreeNode nodo) {
-        DefaultMutableTreeNode condicion;
+        DefaultMutableTreeNode condicion, bloque;
         NodoSemantico info;
         Token token;
+        bloque = (DefaultMutableTreeNode) nodo.getChildAt(0);
         condicion = (DefaultMutableTreeNode) nodo.getChildAt(1);
         expresion(condicion);
+        analyze(bloque);
         info = (NodoSemantico) condicion.getUserObject();
         token = info.getToken();
         if (info.getTipo() != NodoSemantico.type.BOOLEAN) {
@@ -469,12 +543,14 @@ public class TinySemantico {
         NodoSemantico info;
         Token token;
         identificador = (DefaultMutableTreeNode) nodo.getChildAt(0);
+        expresion(identificador);
         info = (NodoSemantico) identificador.getUserObject();
         token = info.getToken();
         if (info.getTipo() == NodoSemantico.type.INT ||
                 info.getTipo() == NodoSemantico.type.REAL){
             if (tabla.buscar(token) >= 0) {
-                info.setValor("undefined");
+                info.setValor("");
+                tabla.insertar(token, tabla.buscar(token), "", info.getTipo());
             } else {
                 listaErrores.add("Error en la línea " + token.getLinea() +
                     ": Identificador \"" + token.getLexema() + "\" no declarado.");
@@ -485,9 +561,22 @@ public class TinySemantico {
         }
     }
     
+    public void escribir(DefaultMutableTreeNode nodo) {
+        DefaultMutableTreeNode identificador;
+        NodoSemantico info;
+        Token token;
+        identificador = (DefaultMutableTreeNode) nodo.getChildAt(0);
+        expresion(identificador);
+        info = (NodoSemantico) identificador.getUserObject();
+        token = info.getToken();
+        if (tabla.buscar(token) < 0) {
+            listaErrores.add("Error en la línea " + token.getLinea() +
+                    ": Identificador \"" + token.getLexema() + "\" no declarado.");
+        }
+    }
     
-    public void analyze() {
-        DefaultMutableTreeNode nodo = arbolSemantico;
+    
+    public void analyze(DefaultMutableTreeNode nodo) {
         DefaultMutableTreeNode hijo;
         NodoSemantico info;
         Token token;
@@ -517,16 +606,27 @@ public class TinySemantico {
                 case CIN:
                     leer(hijo);
                     break;
+                case COUT:
+                    escribir(hijo);
+                    break;
             }
         }
     }
     
-    public List<String> getListaErrores() {
+    public void analyze() {
+        analyze(arbolSemantico);
+    }
+    
+    public List getListaErrores() {
         return this.listaErrores;
     }   
     
     public DefaultMutableTreeNode getArbolSemantico() {
         return arbolSemantico;
+    }
+    
+    public TablaSimbolos getTablaSimbolos() {
+        return tabla;
     }
     
     public static DefaultMutableTreeNode convertirArbol(DefaultMutableTreeNode nodo) {

@@ -26,7 +26,7 @@ public class Token implements Serializable{
         LESS_EQUAL, GREATER_EQUAL, EQUALS, NOT_EQUALS, ASSIGN, SEMICOLON,
         COMMA, LEFT_PARENS, RIGHT_PARENS, LEFT_CURLY, RIGHT_CURLY, COMMENT,
         LINE_COMMENT, ITERATION, DECREMENT, IDENTIFIER, NUMBER, REAL_NUMBER,
-        VOID, BOOLEAN, SIGNED_NUMBER, SIGNED_REAL_NUMBER
+        VOID, BOOLEAN, SIGNED_NUMBER, SIGNED_REAL_NUMBER, TRUE, FALSE
     }
     
     public static final String[] literalesToken={
@@ -102,7 +102,7 @@ public class Token implements Serializable{
      * @return La línea en el que éste caracter se encuentra 
      */
     public int getLinea(){
-        return this.linea;
+        return this.linea + 1;
     }
     
     /**
@@ -192,6 +192,12 @@ public class Token implements Serializable{
                     case "void":
                         this.tipoToken = TipoToken.VOID;
                         break;
+                    case "true":
+                        this.tipoToken = TipoToken.TRUE;
+                        break;
+                    case "false":
+                        this.tipoToken = TipoToken.FALSE;
+                        break;
                 }
             } else {
                 this.tipoToken = TipoToken.IDENTIFIER;
@@ -205,7 +211,7 @@ public class Token implements Serializable{
     public static boolean isReservedWord(String word){
         final String[] literalesPalabrasReservadas ={
         "if", "then", "else", "end", "do", "until", "while", "cout", "cin", 
-        "int", "real", "main", "boolean", "void"
+        "int", "real", "main", "boolean", "void", "true", "false"
         };
         if (word != null) {
             for (String string : literalesPalabrasReservadas) {
